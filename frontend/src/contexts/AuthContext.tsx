@@ -4,12 +4,11 @@ import { User, AuthContextType, Permission, ROLE_PERMISSIONS } from '../types/au
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Mock users database (في الواقع، هذا يجي من backend)
 const MOCK_USERS = [
   {
     id: '1',
     email: 'admin@fraudguard.com',
-    password: 'admin123', // في الواقع، هذا مشفر
+    password: 'admin123', 
     name: 'Admin User',
     role: 'admin' as const
   },
