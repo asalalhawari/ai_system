@@ -21,6 +21,7 @@ const Dashboard: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
 
   useEffect(() => {
     loadDashboardData();
@@ -204,103 +205,104 @@ const Dashboard: React.FC = () => {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        
-        {/* Premium Header */}
-        <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
-          <div className="relative px-8 py-10 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 overflow-hidden">
-            <div className="absolute inset-0 opacity-10">
-              <div className="absolute top-0 left-0 w-96 h-96 bg-white rounded-full blur-3xl"></div>
-              <div className="absolute bottom-0 right-0 w-96 h-96 bg-blue-300 rounded-full blur-3xl"></div>
-            </div>
-            
-            <div className="relative z-10">
-              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-                <div className="flex items-start gap-5">
-                  <div className="flex-shrink-0">
-                    <div className="w-16 h-16 bg-white/20 backdrop-blur-xl rounded-2xl flex items-center justify-center border border-white/30 shadow-2xl">
-                      <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                      </svg>
+  // Show main overview page when activeTab is 'overview'
+  if (activeTab === 'overview') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+          
+          {/* Premium Header */}
+          <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+            <div className="relative px-8 py-10 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 overflow-hidden">
+              <div className="absolute inset-0 opacity-10">
+                <div className="absolute top-0 left-0 w-96 h-96 bg-white rounded-full blur-3xl"></div>
+                <div className="absolute bottom-0 right-0 w-96 h-96 bg-blue-300 rounded-full blur-3xl"></div>
+              </div>
+              
+              <div className="relative z-10">
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+                  <div className="flex items-start gap-5">
+                    <div className="flex-shrink-0">
+                      <div className="w-16 h-16 bg-white/20 backdrop-blur-xl rounded-2xl flex items-center justify-center border border-white/30 shadow-2xl">
+                        <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                        </svg>
+                      </div>
                     </div>
-                  </div>
-                  
-                  <div>
-                    <h1 className="text-4xl font-bold text-white mb-2 tracking-tight">
-                      AI Fraud Detection
-                    </h1>
-                    <p className="text-blue-100 text-sm max-w-2xl leading-relaxed">
-                      Advanced machine learning system for real-time claims analysis and fraud pattern detection
-                    </p>
                     
-                    <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-xl rounded-full border border-white/30">
-                      <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                      <span className="text-xs font-semibold text-white">System Active</span>
+                    <div>
+                      <h1 className="text-4xl font-bold text-white mb-2 tracking-tight">
+                        AI Fraud Detection
+                      </h1>
+                      <p className="text-blue-100 text-sm max-w-2xl leading-relaxed">
+                        Advanced machine learning system for real-time claims analysis and fraud pattern detection
+                      </p>
+                      
+                      <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-xl rounded-full border border-white/30">
+                        <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                        <span className="text-xs font-semibold text-white">System Active</span>
+                      </div>
                     </div>
                   </div>
-                </div>
-                
-                <div className="flex items-center gap-3">
-                  <div className="text-right mr-4 hidden lg:block">
-                    <p className="text-xs text-blue-200 font-medium">Last Updated</p>
-                    <p className="text-sm text-white font-semibold">
-                      {lastUpdated.toLocaleTimeString()}
-                    </p>
-                  </div>
                   
-                  <button
-                    onClick={loadDashboardData}
-                    disabled={loading}
-                    className="px-6 py-3.5 bg-white hover:bg-blue-50 text-blue-700 font-semibold rounded-xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <svg className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                    </svg>
-                    Refresh
-                  </button>
+                  <div className="flex items-center gap-3">
+                    <div className="text-right mr-4 hidden lg:block">
+                      <p className="text-xs text-blue-200 font-medium">Last Updated</p>
+                      <p className="text-sm text-white font-semibold">
+                        {lastUpdated.toLocaleTimeString()}
+                      </p>
+                    </div>
+                    
+                    <button
+                      onClick={loadDashboardData}
+                      disabled={loading}
+                      className="px-6 py-3.5 bg-white hover:bg-blue-50 text-blue-700 font-semibold rounded-xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <svg className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      </svg>
+                      Refresh
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* Navigation Tabs */}
-          <div className="px-8 py-4 bg-white border-b border-gray-200">
-            <nav className="flex space-x-2 overflow-x-auto">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`
-                    relative px-6 py-3 rounded-xl font-semibold text-sm transition-all duration-200 whitespace-nowrap flex items-center gap-2
-                    ${activeTab === tab.id 
-                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg transform scale-105' 
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    }
-                  `}
-                >
-                  {tab.icon}
-                  <span>{tab.name}</span>
-                  {tab.badge && (
-                    <span className={`
-                      px-2 py-0.5 rounded-full text-xs font-bold
+            {/* Navigation Tabs */}
+            <div className="px-8 py-4 bg-white border-b border-gray-200">
+              <nav className="flex space-x-2 overflow-x-auto">
+                {tabs.map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`
+                      relative px-6 py-3 rounded-xl font-semibold text-sm transition-all duration-200 whitespace-nowrap flex items-center gap-2
                       ${activeTab === tab.id 
-                        ? 'bg-white/20 text-white' 
-                        : 'bg-red-100 text-red-700'
+                        ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg transform scale-105' 
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                       }
-                    `}>
-                      {tab.badge}
-                    </span>
-                  )}
-                </button>
-              ))}
-            </nav>
+                    `}
+                  >
+                    {tab.icon}
+                    <span>{tab.name}</span>
+                    {tab.badge && (
+                      <span className={`
+                        px-2 py-0.5 rounded-full text-xs font-bold
+                        ${activeTab === tab.id 
+                          ? 'bg-white/20 text-white' 
+                          : 'bg-red-100 text-red-700'
+                        }
+                      `}>
+                        {tab.badge}
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </nav>
+            </div>
           </div>
-        </div>
 
-        {/* Content Area */}
-        {activeTab === 'overview' && (
+          {/* Overview Content */}
           <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8">
             <div className="mb-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-2">Dashboard Overview</h2>
@@ -411,97 +413,203 @@ const Dashboard: React.FC = () => {
 
             </div>
           </div>
-        )}
 
-        {activeTab === 'clinical' && (
-          <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
-            <div className="relative px-8 py-6 bg-gradient-to-r from-purple-600 via-purple-700 to-indigo-600">
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 bg-white/20 backdrop-blur-xl rounded-2xl flex items-center justify-center border border-white/30">
-                  <svg className="w-7 h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+          {/* Footer */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm">
+              <div className="flex items-center gap-6">
+                <div className="flex items-center gap-2 text-gray-600">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
                   </svg>
+                  <span>Last updated: <span className="font-semibold text-gray-900">{lastUpdated.toLocaleString()}</span></span>
                 </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-white">Clinical Analytics</h2>
-                  <p className="text-sm text-purple-100 mt-1">Medical specialties and diagnosis patterns</p>
-                </div>
+                <div className="hidden md:block w-px h-6 bg-gray-200"></div>
+              </div>
+              <div className="flex items-center gap-2 text-gray-500">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
               </div>
             </div>
-            <div className="p-8">
-              <ClinicalOverview overview={dashboardOverview} specialties={specialties} />
+          </div>
+
+        </div>
+      </div>
+    );
+  }
+
+  // Show sidebar layout for other tabs
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50 flex">
+      {/* Sidebar */}
+      <aside className={`${sidebarCollapsed ? 'w-20' : 'w-72'} bg-white border-r border-gray-200 transition-all duration-300 flex-shrink-0`}>
+        <div className="h-full flex flex-col">
+          {/* Sidebar Header */}
+          <div className="p-6 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              {!sidebarCollapsed && (
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center">
+                    <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 className="font-bold text-gray-900">AI Fraud</h2>
+                    <p className="text-xs text-gray-500">Detection System</p>
+                  </div>
+                </div>
+              )}
+              <button
+                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <svg className={`w-5 h-5 text-gray-600 transition-transform ${sidebarCollapsed ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+                </svg>
+              </button>
             </div>
           </div>
-        )}
 
-        {activeTab === 'fraud' && (
-          <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
-            <div className="relative px-8 py-6 bg-gradient-to-r from-red-600 via-orange-600 to-red-600">
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 bg-white/20 backdrop-blur-xl rounded-2xl flex items-center justify-center border border-white/30">
-                  <svg className="w-7 h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                  </svg>
-                </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-white">AI Fraud Detection</h2>
-                  <p className="text-sm text-red-100 mt-1">Machine learning powered fraud analysis</p>
+          {/* Navigation */}
+          <nav className="flex-1 p-4 space-y-2">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`
+                  w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition-all duration-200
+                  ${activeTab === tab.id 
+                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg' 
+                    : 'text-gray-700 hover:bg-gray-100'
+                  }
+                `}
+              >
+                <div className="flex-shrink-0">{tab.icon}</div>
+                {!sidebarCollapsed && (
+                  <>
+                    <span className="flex-1 text-left">{tab.name}</span>
+                    {tab.badge && (
+                      <span className={`
+                        px-2 py-0.5 rounded-full text-xs font-bold
+                        ${activeTab === tab.id 
+                          ? 'bg-white/20 text-white' 
+                          : 'bg-red-100 text-red-700'
+                        }
+                      `}>
+                        {tab.badge}
+                      </span>
+                    )}
+                  </>
+                )}
+              </button>
+            ))}
+          </nav>
+
+          {/* Sidebar Footer */}
+          <div className="p-4 border-t border-gray-200">
+            <button
+              onClick={loadDashboardData}
+              disabled={loading}
+              className={`
+                w-full flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed
+                ${sidebarCollapsed ? 'justify-center' : ''}
+              `}
+            >
+              <svg className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              {!sidebarCollapsed && <span>Refresh</span>}
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <main className="flex-1 overflow-auto">
+        <div className="max-w-[1600px] mx-auto p-6 space-y-6">
+          {activeTab === 'clinical' && (
+            <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+              <div className="relative px-8 py-6 bg-gradient-to-r from-purple-600 via-purple-700 to-indigo-600">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 bg-white/20 backdrop-blur-xl rounded-2xl flex items-center justify-center border border-white/30">
+                    <svg className="w-7 h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold text-white">Clinical Analytics</h2>
+                    <p className="text-sm text-purple-100 mt-1">Medical specialties and diagnosis patterns</p>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div className="p-8">
-              <FraudOverview fraudOverview={aiFraudOverview} />
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'cases' && (
-          <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
-            <div className="relative px-8 py-6 bg-gradient-to-r from-amber-600 via-orange-600 to-amber-600">
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 bg-white/20 backdrop-blur-xl rounded-2xl flex items-center justify-center border border-white/30">
-                  <svg className="w-7 h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-white">Suspicious Cases</h2>
-                  <p className="text-sm text-amber-100 mt-1">High-risk claims requiring immediate investigation</p>
-                </div>
+              <div className="p-8">
+                <ClinicalOverview overview={dashboardOverview} specialties={specialties} />
               </div>
             </div>
-            <div className="p-8">
-              <FraudCases fraudCases={aiFraudCases} />
-            </div>
-          </div>
-        )}
+          )}
 
-        {/* Footer */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm">
-            <div className="flex items-center gap-6">
+          {activeTab === 'fraud' && (
+            <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+              <div className="relative px-8 py-6 bg-gradient-to-r from-red-600 via-orange-600 to-red-600">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 bg-white/20 backdrop-blur-xl rounded-2xl flex items-center justify-center border border-white/30">
+                    <svg className="w-7 h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold text-white">AI Fraud Detection</h2>
+                    <p className="text-sm text-red-100 mt-1">Machine learning powered fraud analysis</p>
+                  </div>
+                </div>
+              </div>
+              <div className="p-8">
+                <FraudOverview fraudOverview={aiFraudOverview} />
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'cases' && (
+            <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+              <div className="relative px-8 py-6 bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 bg-white/20 backdrop-blur-xl rounded-2xl flex items-center justify-center border border-white/30">
+                    <svg className="w-7 h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold text-white">Suspicious Cases</h2>
+                    <p className="text-sm text-blue-100 mt-1">High-risk claims requiring immediate investigation</p>
+                  </div>
+                </div>
+              </div>
+              <div className="p-8">
+                <FraudCases fraudCases={aiFraudCases} />
+              </div>
+            </div>
+          )}
+
+          {/* Footer */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm">
               <div className="flex items-center gap-2 text-gray-600">
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
                 </svg>
                 <span>Last updated: <span className="font-semibold text-gray-900">{lastUpdated.toLocaleString()}</span></span>
               </div>
-              <div className="hidden md:block w-px h-6 bg-gray-200"></div>
-              <div className="flex items-center gap-2 text-gray-600">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span>System Status: <span className="font-semibold text-green-600">Operational</span></span>
+              <div className="flex items-center gap-2 text-gray-500">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
               </div>
-            </div>
-            <div className="flex items-center gap-2 text-gray-500">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-              </svg>
-              <span>Powered by <span className="font-semibold text-gray-700">AI Fraud Detection Engine v2.0</span></span>
             </div>
           </div>
         </div>
-
-      </div>
+      </main>
     </div>
   );
 };

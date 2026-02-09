@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AIFraudCasesResponse } from '../types/dashboard';
 import { formatCurrency } from '../utils/formatters';
 
@@ -9,28 +9,65 @@ interface FraudCasesProps {
 const FraudCases: React.FC<FraudCasesProps> = ({ fraudCases }) => {
   const [selectedCase, setSelectedCase] = useState<number | null>(null);
   const [filterRisk, setFilterRisk] = useState<'all' | 'high' | 'medium' | 'low'>('all');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(3);
+
+  // Close modal on ESC key
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsModalOpen(false);
+      }
+    };
+    if (isModalOpen) {
+      document.addEventListener('keydown', handleEscape);
+      document.body.style.overflow = 'hidden';
+    }
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+      document.body.style.overflow = 'unset';
+    };
+  }, [isModalOpen]);
+
+  // Reset to page 1 when filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filterRisk]);
+
+  const openModal = (idx: number) => {
+    setSelectedCase(idx);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setTimeout(() => setSelectedCase(null), 300);
+  };
 
   if (!fraudCases || !fraudCases.fraud_cases || fraudCases.fraud_cases.length === 0) {
     return (
-      <div className="text-center py-16">
-        <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-2xl mb-6">
-          <svg className="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <div className="text-center py-24">
+        <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-3xl mb-8 border border-emerald-100 shadow-sm">
+          <svg className="w-12 h-12 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </div>
-        <h3 className="text-xl font-bold text-gray-900 mb-2">All Clear!</h3>
-        <p className="text-gray-600 max-w-md mx-auto mb-6">
+        <h3 className="text-3xl font-bold text-gray-900 mb-4">All Clear!</h3>
+        <p className="text-lg text-gray-600 max-w-lg mx-auto mb-10 leading-relaxed">
           No high-priority fraud cases detected. Your claims are looking healthy.
         </p>
-        <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-50 rounded-lg border border-green-200">
-          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-          <span className="text-sm font-semibold text-green-700">System Monitoring Active</span>
+        <div className="inline-flex items-center gap-4 px-6 py-4 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-2xl border border-emerald-200 shadow-sm">
+          <div className="relative">
+            <div className="w-3 h-3 bg-emerald-500 rounded-full animate-pulse"></div>
+            <div className="absolute inset-0 w-3 h-3 bg-emerald-400 rounded-full animate-ping"></div>
+          </div>
+          <span className="text-sm font-bold text-emerald-900">System Monitoring Active</span>
         </div>
       </div>
     );
   }
 
-  // Risk categorization helper
   const getRiskLevel = (score: number): 'high' | 'medium' | 'low' => {
     if (score >= 0.7) return 'high';
     if (score >= 0.5) return 'medium';
@@ -40,330 +77,380 @@ const FraudCases: React.FC<FraudCasesProps> = ({ fraudCases }) => {
   const getRiskConfig = (level: 'high' | 'medium' | 'low') => {
     const configs = {
       high: {
-        color: 'red',
-        bgClass: 'bg-red-50',
-        borderClass: 'border-red-200',
-        textClass: 'text-red-700',
-        badgeClass: 'bg-red-100 text-red-700',
-        gradientClass: 'from-red-500 to-orange-500',
+        bgGradient: 'from-blue-700 via-blue-800 to-blue-900',
+        cardBg: 'bg-white',
+        borderClass: 'border-gray-200',
+        textClass: 'text-gray-900',
+        badgeClass: 'bg-blue-50 text-blue-900 border-blue-200',
+        dotClass: 'bg-blue-800',
+        ringClass: 'ring-blue-800',
+        buttonClass: 'bg-blue-800 hover:bg-blue-900',
         label: 'Critical',
+        priority: 'Immediate Action',
         icon: (
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
         )
       },
       medium: {
-        color: 'orange',
-        bgClass: 'bg-orange-50',
-        borderClass: 'border-orange-200',
-        textClass: 'text-orange-700',
-        badgeClass: 'bg-orange-100 text-orange-700',
-        gradientClass: 'from-orange-500 to-yellow-500',
+        bgGradient: 'from-blue-500 via-blue-600 to-blue-700',
+        cardBg: 'bg-white',
+        borderClass: 'border-gray-200',
+        textClass: 'text-gray-900',
+        badgeClass: 'bg-blue-50 text-blue-800 border-blue-200',
+        dotClass: 'bg-blue-600',
+        ringClass: 'ring-blue-600',
+        buttonClass: 'bg-blue-600 hover:bg-blue-700',
         label: 'Warning',
+        priority: 'Review Soon',
         icon: (
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         )
       },
       low: {
-        color: 'yellow',
-        bgClass: 'bg-yellow-50',
-        borderClass: 'border-yellow-200',
-        textClass: 'text-yellow-700',
-        badgeClass: 'bg-yellow-100 text-yellow-700',
-        gradientClass: 'from-yellow-500 to-amber-500',
+        bgGradient: 'from-blue-400 via-blue-500 to-blue-600',
+        cardBg: 'bg-white',
+        borderClass: 'border-gray-200',
+        textClass: 'text-gray-900',
+        badgeClass: 'bg-blue-50 text-blue-700 border-blue-200',
+        dotClass: 'bg-blue-500',
+        ringClass: 'ring-blue-500',
+        buttonClass: 'bg-blue-500 hover:bg-blue-600',
         label: 'Monitor',
+        priority: 'Routine Check',
         icon: (
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         )
       }
     };
     return configs[level];
   };
 
-  // Filter cases by risk level
   const filteredCases = fraudCases.fraud_cases.filter(c => {
     if (filterRisk === 'all') return true;
     return getRiskLevel(c.fraud_score) === filterRisk;
   });
 
-  // Count by risk level
   const riskCounts = {
     high: fraudCases.fraud_cases.filter(c => getRiskLevel(c.fraud_score) === 'high').length,
     medium: fraudCases.fraud_cases.filter(c => getRiskLevel(c.fraud_score) === 'medium').length,
     low: fraudCases.fraud_cases.filter(c => getRiskLevel(c.fraud_score) === 'low').length,
   };
 
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredCases.length / rowsPerPage);
+  const startIndex = (currentPage - 1) * rowsPerPage;
+  const endIndex = startIndex + rowsPerPage;
+  const currentCases = filteredCases.slice(startIndex, endIndex);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
   return (
     <div className="space-y-6">
       
-      {/* Summary Bar */}
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200 px-6 py-4">
+      {/* Compact Header with Inline Stats */}
+      <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-              <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl flex items-center justify-center shadow-md">
+              <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
               </svg>
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-gray-900">
-                Total Cases Analyzed
-              </h3>
-              <p className="text-xs text-gray-600 mt-0.5">
-                AI-powered fraud detection results
-              </p>
+              <h2 className="text-xl font-bold text-gray-900">Fraud Detection System</h2>
+              <p className="text-gray-500 text-sm">AI-powered risk assessment</p>
             </div>
           </div>
-          <div className="flex items-center gap-6">
-            <div className="text-right">
-              <p className="text-2xl font-bold text-gray-900">{fraudCases.total_flagged}</p>
-              <p className="text-xs text-gray-500">Flagged Cases</p>
+
+          {/* Inline Stats */}
+          <div className="flex items-center gap-8">
+            <div className="text-center">
+              <p className="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-1">Flagged</p>
+              <p className="text-3xl font-bold text-gray-900">{fraudCases.total_flagged}</p>
             </div>
-            <div className="w-px h-12 bg-gray-300"></div>
-            <div className="text-right">
-              <p className="text-2xl font-bold text-blue-600">{fraudCases.total_analyzed.toLocaleString()}</p>
-              <p className="text-xs text-gray-500">Total Analyzed</p>
+            <div className="h-12 w-px bg-gray-300"></div>
+            <div className="text-center">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Analyzed</p>
+              <p className="text-3xl font-bold text-gray-900">{fraudCases.total_analyzed.toLocaleString()}</p>
             </div>
-            <div className="w-px h-12 bg-gray-300"></div>
-            <div className="text-right">
-              <p className="text-2xl font-bold text-purple-600">{((fraudCases.total_flagged / fraudCases.total_analyzed) * 100).toFixed(1)}%</p>
-              <p className="text-xs text-gray-500">Detection Rate</p>
-            </div>
-            {filterRisk !== 'all' && (
-              <>
-                <div className="w-px h-12 bg-gray-300"></div>
-                <button
-                  onClick={() => setFilterRisk('all')}
-                  className="px-4 py-2 bg-white hover:bg-gray-50 text-gray-700 text-sm font-semibold rounded-lg border border-gray-300 hover:border-gray-400 transition-all duration-200"
-                >
-                  View All
-                </button>
-              </>
-            )}
           </div>
         </div>
       </div>
 
-      {/* Filter Cards - Risk Levels Only */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* Compact Filter Tabs */}
+      <div className="flex items-center gap-3 bg-white rounded-2xl border border-gray-200 p-3 shadow-sm">
+        <span className="text-sm font-bold text-gray-700 px-2">Filter:</span>
+        
+        <button
+          onClick={() => setFilterRisk('all')}
+          className={`px-4 py-2.5 rounded-xl font-bold text-sm transition-all ${
+            filterRisk === 'all'
+              ? 'bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-md'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          }`}
+        >
+          All Cases ({fraudCases.fraud_cases.length})
+        </button>
 
-        {/* High Risk */}
-        <div 
+        <button
           onClick={() => setFilterRisk('high')}
-          className={`cursor-pointer transition-all duration-200 ${
-            filterRisk === 'high' ? 'ring-2 ring-red-500' : ''
+          className={`px-4 py-2.5 rounded-xl font-bold text-sm transition-all ${
+            filterRisk === 'high'
+              ? 'bg-blue-800 text-white shadow-md'
+              : 'bg-blue-50 text-blue-900 hover:bg-blue-100 border border-blue-200'
           }`}
         >
-          <div className="bg-white rounded-xl p-5 border-l-4 border-red-500 hover:shadow-md transition-shadow">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center">
-                <svg className="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-              </div>
-              <span className="text-xs font-semibold text-red-600 uppercase">Critical Risk</span>
-            </div>
-            <p className="text-2xl font-bold text-red-600 mb-1">{riskCounts.high}</p>
-            <p className="text-xs text-gray-600">Immediate action required</p>
-          </div>
-        </div>
+          Critical ({riskCounts.high})
+        </button>
 
-        {/* Medium Risk */}
-        <div 
+        <button
           onClick={() => setFilterRisk('medium')}
-          className={`cursor-pointer transition-all duration-200 ${
-            filterRisk === 'medium' ? 'ring-2 ring-orange-500' : ''
+          className={`px-4 py-2.5 rounded-xl font-bold text-sm transition-all ${
+            filterRisk === 'medium'
+              ? 'bg-blue-600 text-white shadow-md'
+              : 'bg-blue-50 text-blue-800 hover:bg-blue-100 border border-blue-200'
           }`}
         >
-          <div className="bg-white rounded-xl p-5 border-l-4 border-orange-500 hover:shadow-md transition-shadow">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 bg-orange-50 rounded-lg flex items-center justify-center">
-                <svg className="w-5 h-5 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <span className="text-xs font-semibold text-orange-600 uppercase">Warning</span>
-            </div>
-            <p className="text-2xl font-bold text-orange-600 mb-1">{riskCounts.medium}</p>
-            <p className="text-xs text-gray-600">Review within 48hrs</p>
-          </div>
-        </div>
+          Warning ({riskCounts.medium})
+        </button>
 
-        {/* Low Risk */}
-        <div 
+        <button
           onClick={() => setFilterRisk('low')}
-          className={`cursor-pointer transition-all duration-200 ${
-            filterRisk === 'low' ? 'ring-2 ring-yellow-500' : ''
+          className={`px-4 py-2.5 rounded-xl font-bold text-sm transition-all ${
+            filterRisk === 'low'
+              ? 'bg-blue-500 text-white shadow-md'
+              : 'bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200'
           }`}
         >
-          <div className="bg-white rounded-xl p-5 border-l-4 border-yellow-500 hover:shadow-md transition-shadow">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 bg-yellow-50 rounded-lg flex items-center justify-center">
-                <svg className="w-5 h-5 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <span className="text-xs font-semibold text-yellow-600 uppercase">Monitor</span>
-            </div>
-            <p className="text-2xl font-bold text-yellow-600 mb-1">{riskCounts.low}</p>
-            <p className="text-xs text-gray-600">Routine investigation</p>
-          </div>
-        </div>
-
+          Monitor ({riskCounts.low})
+        </button>
       </div>
 
-      {/* Active Filter Badge */}
-      {filterRisk !== 'all' && (
-        <div className="flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-xl p-4">
-          <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-          </svg>
-          <span className="text-sm font-semibold text-blue-900">
-            Filtering: {filterRisk.charAt(0).toUpperCase() + filterRisk.slice(1)} Risk Cases
-          </span>
-          <span className="text-sm text-blue-700">({filteredCases.length} results)</span>
+      {/* Pagination Controls - Top */}
+      {filteredCases.length > 0 && (
+        <div className="flex items-center justify-between bg-white rounded-2xl border border-gray-200 px-5 py-3 shadow-sm">
+          <div className="flex items-center gap-3">
+            <label className="text-sm font-bold text-gray-700">Rows:</label>
+            <select
+              value={rowsPerPage}
+              onChange={(e) => {
+                setRowsPerPage(Number(e.target.value));
+                setCurrentPage(1);
+              }}
+              className="px-3 py-2 bg-white border-2 border-gray-300 rounded-lg text-sm font-bold text-gray-700 hover:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+            >
+              <option value={3}>3 rows</option>
+              <option value={6}>6 rows</option>
+              <option value={9}>9 rows</option>
+              <option value={12}>12 rows</option>
+            </select>
+          </div>
+          <div className="text-sm font-bold text-gray-700">
+            Page {currentPage} of {totalPages}
+          </div>
+        </div>
+      )}
+
+      {/* Card Grid - 3 per row */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        {currentCases.map((fraudCase, idx) => {
+          const riskLevel = getRiskLevel(fraudCase.fraud_score);
+          const config = getRiskConfig(riskLevel);
+          const originalIndex = startIndex + idx;
+
+          return (
+            <div
+              key={originalIndex}
+              className="group bg-white rounded-2xl border-2 border-gray-200 overflow-hidden hover:shadow-xl hover:border-blue-400 transition-all duration-300 hover:-translate-y-1"
+            >
+              {/* Card Header */}
+              <div className={`bg-gradient-to-br ${config.bgGradient} p-5 relative overflow-hidden`}>
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
+                <div className="absolute bottom-0 left-0 w-24 h-24 bg-black/10 rounded-full -ml-12 -mb-12"></div>
+                
+                <div className="relative z-10">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-11 h-11 bg-white/25 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/40 shadow-lg">
+                        <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          {config.icon}
+                        </svg>
+                      </div>
+                      <div>
+                        <p className="text-white/95 text-xs font-bold uppercase tracking-wider mb-1">{config.label}</p>
+                        <p className="text-white text-lg font-bold">#{fraudCase.member_id}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-white/25 backdrop-blur-sm rounded-xl px-3 py-2 border border-white/40 shadow-md">
+                      <div className="text-2xl font-bold text-white leading-none">
+                        {(fraudCase.fraud_score * 100).toFixed(0)}%
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="w-full h-2 bg-white/25 rounded-full overflow-hidden backdrop-blur-sm shadow-inner">
+                    <div 
+                      className="h-full bg-white rounded-full transition-all duration-500 shadow-sm"
+                      style={{ width: `${fraudCase.fraud_score * 100}%` }}
+                    ></div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card Body */}
+              <div className="p-5 space-y-4">
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  <span className="font-bold text-gray-900">{fraudCase.service_date}</span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className={`${config.cardBg} rounded-xl p-3 border ${config.borderClass} shadow-sm`}>
+                    <p className={`text-xs ${config.textClass} font-bold mb-1 uppercase tracking-wide opacity-75`}>Specialty</p>
+                    <p className={`text-sm font-bold ${config.textClass} truncate`} title={fraudCase.specialty_name}>
+                      {fraudCase.specialty_name}
+                    </p>
+                  </div>
+                  <div className={`${config.cardBg} rounded-xl p-3 border ${config.borderClass} shadow-sm`}>
+                    <p className={`text-xs ${config.textClass} font-bold mb-1 uppercase tracking-wide opacity-75`}>Amount</p>
+                    <p className={`text-sm font-bold ${config.textClass}`}>{formatCurrency(fraudCase.gross_claim_amount)}</p>
+                  </div>
+                </div>
+
+                <div>
+                  <p className="text-xs text-gray-500 font-bold uppercase tracking-wider mb-2">Flags</p>
+                  <div className="flex flex-wrap gap-2">
+                    {fraudCase.fraud_reasons.slice(0, 2).map((reason, i) => (
+                      <span 
+                        key={i}
+                        className={`px-2.5 py-1 ${config.badgeClass} rounded-lg text-xs font-bold border truncate max-w-full shadow-sm`}
+                        title={reason}
+                      >
+                        {reason.length > 18 ? reason.substring(0, 18) + '...' : reason}
+                      </span>
+                    ))}
+                    {fraudCase.fraud_reasons.length > 2 && (
+                      <span className="px-2.5 py-1 bg-gray-100 text-gray-700 rounded-lg text-xs font-bold border border-gray-300 shadow-sm">
+                        +{fraudCase.fraud_reasons.length - 2}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => openModal(originalIndex)}
+                  className={`w-full flex items-center justify-center gap-2 px-4 py-3 ${config.buttonClass} text-white font-bold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl`}
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                  View Details
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Empty State */}
+      {filteredCases.length === 0 && filterRisk !== 'all' && (
+        <div className="text-center py-16 bg-white rounded-2xl border-2 border-gray-200 shadow-sm">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl mb-4 shadow-inner">
+            <svg className="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <h3 className="text-xl font-bold text-gray-900 mb-2">No Cases Found</h3>
+          <p className="text-gray-600 mb-6">No {filterRisk} risk cases match your filter.</p>
           <button
             onClick={() => setFilterRisk('all')}
-            className="ml-auto text-sm text-blue-700 hover:text-blue-900 font-semibold"
+            className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white font-bold rounded-xl transition-all duration-200 shadow-lg"
           >
-            Clear Filter
+            View All Cases
           </button>
         </div>
       )}
 
-      {/* Cases Grid - Master/Detail Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
-        {/* Left: Cases List */}
-        <div className="space-y-4 lg:max-h-[800px] lg:overflow-y-auto lg:pr-2">
-          {filteredCases.map((fraudCase, idx) => {
-            const riskLevel = getRiskLevel(fraudCase.fraud_score);
-            const config = getRiskConfig(riskLevel);
-            const isSelected = selectedCase === idx;
+      {/* Pagination - Bottom */}
+      {filteredCases.length > 0 && totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2 bg-white rounded-2xl border border-gray-200 px-5 py-4 shadow-sm">
+          <button
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            className={`px-4 py-2 rounded-xl font-bold text-sm transition-all shadow-sm ${
+              currentPage === 1
+                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                : 'bg-white text-gray-700 border-2 border-gray-300 hover:bg-blue-50 hover:border-blue-500 hover:text-blue-700'
+            }`}
+          >
+            Previous
+          </button>
 
-            return (
-              <div
-                key={idx}
-                onClick={() => setSelectedCase(idx)}
-                className={`cursor-pointer transition-all duration-200 ${
-                  isSelected ? 'ring-2 ring-blue-500 shadow-lg' : 'hover:shadow-md'
-                }`}
-              >
-                {/* Card Container */}
-                <div className={`rounded-xl border-2 ${config.borderClass} bg-white overflow-hidden`}>
-                  
-                  {/* Header with Risk Score */}
-                  <div className={`px-5 py-4 ${config.bgClass} border-b ${config.borderClass}`}>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 ${config.badgeClass} rounded-lg flex items-center justify-center border ${config.borderClass}`}>
-                          <svg className={`w-5 h-5 ${config.textClass}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            {config.icon}
-                          </svg>
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="text-gray-900 font-bold text-base">#{fraudCase.member_id}</span>
-                            <span className={`px-2 py-0.5 ${config.badgeClass} rounded text-xs font-semibold border ${config.borderClass}`}>
-                              {config.label}
-                            </span>
-                          </div>
-                          <p className="text-gray-600 text-xs">{fraudCase.service_date}</p>
-                        </div>
-                      </div>
-                      
-                      {/* Risk Score Display */}
-                      <div className="text-right">
-                        <div className={`text-2xl font-bold ${config.textClass} mb-0.5`}>
-                          {(fraudCase.fraud_score * 100).toFixed(0)}%
-                        </div>
-                        <div className="text-xs text-gray-500 font-medium">Risk</div>
-                      </div>
-                    </div>
+          <div className="flex items-center gap-2">
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+              const showPage =
+                page === 1 ||
+                page === totalPages ||
+                (page >= currentPage - 1 && page <= currentPage + 1);
 
-                    {/* Score Bar */}
-                    <div className="mt-3 w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                      <div 
-                        className={`h-full ${config.textClass.replace('text', 'bg')} rounded-full transition-all duration-300`}
-                        style={{ width: `${fraudCase.fraud_score * 100}%` }}
-                      ></div>
-                    </div>
-                  </div>
+              if (!showPage) {
+                if (page === currentPage - 2 || page === currentPage + 2) {
+                  return (
+                    <span key={page} className="px-2 text-gray-400 font-bold">...</span>
+                  );
+                }
+                return null;
+              }
 
-                  {/* Body Content */}
-                  <div className="p-5 space-y-3">
-                    
-                    {/* Key Info Grid */}
-                    <div className="grid grid-cols-2 gap-3 text-sm">
-                      <div>
-                        <p className="text-xs text-gray-500 mb-0.5">Specialty</p>
-                        <p className="font-semibold text-gray-900">{fraudCase.specialty_name}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-500 mb-0.5">Amount</p>
-                        <p className="font-bold text-gray-900">{formatCurrency(fraudCase.gross_claim_amount)}</p>
-                      </div>
-                      {fraudCase.treating_physician && (
-                        <>
-                          <div>
-                            <p className="text-xs text-gray-500 mb-0.5">Physician</p>
-                            <p className="font-semibold text-gray-900 truncate">Dr. {fraudCase.treating_physician}</p>
-                          </div>
-                          <div>
-                            <p className="text-xs text-gray-500 mb-0.5">Quantity</p>
-                            <p className="font-semibold text-gray-900">{fraudCase.quantity}</p>
-                          </div>
-                        </>
-                      )}
-                    </div>
+              return (
+                <button
+                  key={page}
+                  onClick={() => handlePageChange(page)}
+                  className={`w-10 h-10 rounded-xl font-bold text-sm transition-all shadow-sm ${
+                    currentPage === page
+                      ? 'bg-gradient-to-br from-blue-600 to-indigo-700 text-white shadow-lg'
+                      : 'bg-white text-gray-700 border-2 border-gray-300 hover:bg-blue-50 hover:border-blue-500 hover:text-blue-700'
+                  }`}
+                >
+                  {page}
+                </button>
+              );
+            })}
+          </div>
 
-                    {/* Fraud Reason Badges */}
-                    <div>
-                      <p className="text-xs text-gray-500 font-medium mb-2">Detection Flags</p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {fraudCase.fraud_reasons.map((reason, i) => (
-                          <span 
-                            key={i}
-                            className={`px-2.5 py-1 ${config.badgeClass} rounded text-xs font-medium border ${config.borderClass}`}
-                          >
-                            {reason}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Action Required */}
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                      <p className="text-xs font-semibold text-blue-900 mb-1">Recommended Action</p>
-                      <p className="text-xs text-blue-700 leading-relaxed">{fraudCase.recommended_action}</p>
-                    </div>
-
-                    {/* View Details */}
-                    <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-                      <span className="text-xs text-gray-500">
-                        {isSelected ? 'Viewing details' : 'Click for details'}
-                      </span>
-                      <svg 
-                        className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${isSelected ? 'rotate-90' : ''}`} 
-                        fill="none" 
-                        viewBox="0 0 24 24" 
-                        stroke="currentColor"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </div>
-
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+          <button
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className={`px-4 py-2 rounded-xl font-bold text-sm transition-all shadow-sm ${
+              currentPage === totalPages
+                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                : 'bg-white text-gray-700 border-2 border-gray-300 hover:bg-blue-50 hover:border-blue-500 hover:text-blue-700'
+            }`}
+          >
+            Next
+          </button>
         </div>
+      )}
 
-        {/* Right: Selected Case Details Panel */}
-        <div className="lg:sticky lg:top-4 lg:h-fit">
-          {selectedCase !== null ? (
-            <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-              
+      {/* Modal - Improved Design */}
+      {isModalOpen && selectedCase !== null && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm transition-opacity duration-300"
+            onClick={closeModal}
+          ></div>
+          
+          <div className="flex min-h-screen items-center justify-center p-4">
+            <div 
+              className="relative bg-white rounded-3xl shadow-2xl max-w-5xl w-full max-h-[95vh] overflow-hidden transform transition-all duration-300 scale-100"
+              onClick={(e) => e.stopPropagation()}
+            >
               {(() => {
                 const fraudCase = filteredCases[selectedCase];
                 const riskLevel = getRiskLevel(fraudCase.fraud_score);
@@ -371,109 +458,116 @@ const FraudCases: React.FC<FraudCasesProps> = ({ fraudCases }) => {
 
                 return (
                   <>
-                    {/* Header */}
-                    <div className={`px-6 py-5 ${config.bgClass} border-b-2 ${config.borderClass}`}>
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="text-lg font-bold text-gray-900 mb-1">Case Details</h3>
-                          <p className="text-gray-600 text-sm">Member #{fraudCase.member_id}</p>
+                    {/* Modal Header */}
+                    <div className={`bg-gradient-to-br ${config.bgGradient} px-8 py-6 relative overflow-hidden`}>
+                      <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32"></div>
+                      <div className="absolute bottom-0 left-0 w-48 h-48 bg-black/10 rounded-full -ml-24 -mb-24"></div>
+                      
+                      <div className="relative z-10">
+                        <div className="flex items-start justify-between mb-5">
+                          <div>
+                            <div className="flex items-center gap-3 mb-2">
+                              <span className={`px-4 py-2 bg-white/30 backdrop-blur-sm rounded-xl text-sm font-bold text-white border border-white/50 shadow-md`}>
+                                {config.label.toUpperCase()}
+                              </span>
+                              <div className="text-4xl font-bold text-white">
+                                {(fraudCase.fraud_score * 100).toFixed(1)}%
+                              </div>
+                            </div>
+                            <h3 className="text-2xl font-bold text-white mb-1">Case Details</h3>
+                            <p className="text-white/90 text-base font-semibold">Member #{fraudCase.member_id}</p>
+                          </div>
+                          <button
+                            onClick={closeModal}
+                            className="w-12 h-12 bg-white/25 hover:bg-white/35 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/40 transition-all duration-200 shadow-lg"
+                          >
+                            <svg className="w-7 h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
                         </div>
-                        <button
-                          onClick={() => setSelectedCase(null)}
-                          className="w-9 h-9 bg-white hover:bg-gray-100 rounded-lg flex items-center justify-center border border-gray-200 transition-colors"
-                        >
-                          <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                        </button>
+
+                        {/* Progress Bar */}
+                        <div className="w-full h-3 bg-white/30 rounded-full overflow-hidden shadow-inner">
+                          <div 
+                            className="h-full bg-white rounded-full transition-all duration-500 shadow-sm"
+                            style={{ width: `${fraudCase.fraud_score * 100}%` }}
+                          ></div>
+                        </div>
                       </div>
                     </div>
 
-                    {/* Details Content */}
-                    <div className="p-6 space-y-6 max-h-[700px] overflow-y-auto">
+                    {/* Modal Content - Scrollable */}
+                    <div className="p-8 space-y-6 max-h-[calc(95vh-300px)] overflow-y-auto">
                       
-                      {/* Risk Assessment */}
+                      {/* Claim Information Grid */}
                       <div>
-                        <h4 className="text-sm font-bold text-gray-900 mb-3">Risk Assessment</h4>
-                        <div className={`${config.bgClass} border ${config.borderClass} rounded-lg p-4`}>
-                          <div className="flex items-center justify-between mb-3">
-                            <span className={`text-xl font-bold ${config.textClass}`}>
-                              {(fraudCase.fraud_score * 100).toFixed(1)}%
-                            </span>
-                            <span className={`px-3 py-1 ${config.badgeClass} rounded text-sm font-semibold border ${config.borderClass}`}>
-                              {config.label} Risk
-                            </span>
+                        <h4 className="text-base font-bold text-gray-900 mb-4 uppercase tracking-wider flex items-center gap-3">
+                          <div className={`w-1.5 h-5 bg-gradient-to-b ${config.bgGradient} rounded-full`}></div>
+                          Claim Information
+                        </h4>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="bg-gray-50 rounded-xl p-5 border-2 border-gray-200">
+                            <p className="text-xs text-gray-500 font-bold mb-2 uppercase tracking-wide">Service Date</p>
+                            <p className="text-lg font-bold text-gray-900">{fraudCase.service_date}</p>
                           </div>
-                          <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-                            <div 
-                              className={`h-full ${config.textClass.replace('text', 'bg')} rounded-full transition-all duration-300`}
-                              style={{ width: `${fraudCase.fraud_score * 100}%` }}
-                            ></div>
+                          <div className="bg-gray-50 rounded-xl p-5 border-2 border-gray-200">
+                            <p className="text-xs text-gray-500 font-bold mb-2 uppercase tracking-wide">Invoice Number</p>
+                            <p className="text-lg font-bold text-gray-900">{fraudCase.invoice_no}</p>
                           </div>
-                        </div>
-                      </div>
-
-                      {/* Claim Information */}
-                      <div>
-                        <h4 className="text-sm font-bold text-gray-900 mb-3">Claim Information</h4>
-                        <div className="bg-gray-50 rounded-lg border border-gray-200 divide-y divide-gray-200">
-                          <div className="p-4 grid grid-cols-2 gap-4">
-                            <div>
-                              <p className="text-xs text-gray-500 mb-1">Service Date</p>
-                              <p className="text-sm font-semibold text-gray-900">{fraudCase.service_date}</p>
-                            </div>
-                            <div>
-                              <p className="text-xs text-gray-500 mb-1">Invoice Number</p>
-                              <p className="text-sm font-semibold text-gray-900">{fraudCase.invoice_no}</p>
-                            </div>
+                          <div className="bg-blue-50 rounded-xl p-5 border-2 border-blue-200">
+                            <p className="text-xs text-blue-600 font-bold mb-2 uppercase tracking-wide">Claim Amount</p>
+                            <p className="text-2xl font-bold text-blue-900">{formatCurrency(fraudCase.gross_claim_amount)}</p>
                           </div>
-                          <div className="p-4 grid grid-cols-2 gap-4">
-                            <div>
-                              <p className="text-xs text-gray-500 mb-1">Claim Amount</p>
-                              <p className="text-sm font-bold text-gray-900">{formatCurrency(fraudCase.gross_claim_amount)}</p>
-                            </div>
-                            <div>
-                              <p className="text-xs text-gray-500 mb-1">Quantity</p>
-                              <p className="text-sm font-semibold text-gray-900">{fraudCase.quantity}</p>
-                            </div>
+                          <div className="bg-blue-50 rounded-xl p-5 border-2 border-blue-200">
+                            <p className="text-xs text-blue-600 font-bold mb-2 uppercase tracking-wide">Quantity</p>
+                            <p className="text-2xl font-bold text-blue-900">{fraudCase.quantity}</p>
                           </div>
                         </div>
                       </div>
 
                       {/* Medical Details */}
                       <div>
-                        <h4 className="text-sm font-bold text-gray-900 mb-3">Medical Details</h4>
-                        <div className="bg-gray-50 rounded-lg border border-gray-200 divide-y divide-gray-200">
-                          <div className="p-4">
-                            <p className="text-xs text-gray-500 mb-1">Specialty</p>
-                            <p className="text-sm font-semibold text-gray-900">{fraudCase.specialty_name}</p>
+                        <h4 className="text-base font-bold text-gray-900 mb-4 uppercase tracking-wider flex items-center gap-3">
+                          <div className={`w-1.5 h-5 bg-gradient-to-b ${config.bgGradient} rounded-full`}></div>
+                          Medical Details
+                        </h4>
+                        <div className="space-y-3">
+                          <div className={`${config.cardBg} rounded-xl p-5 border-2 ${config.borderClass} shadow-sm`}>
+                            <p className={`text-xs ${config.textClass} font-bold mb-2 uppercase tracking-wide`}>Specialty</p>
+                            <p className={`text-lg font-bold ${config.textClass}`}>{fraudCase.specialty_name}</p>
                           </div>
                           {fraudCase.treating_physician && (
-                            <div className="p-4">
-                              <p className="text-xs text-gray-500 mb-1">Treating Physician</p>
-                              <p className="text-sm font-semibold text-gray-900">Dr. {fraudCase.treating_physician}</p>
+                            <div className={`${config.cardBg} rounded-xl p-5 border-2 ${config.borderClass} shadow-sm`}>
+                              <p className={`text-xs ${config.textClass} font-bold mb-2 uppercase tracking-wide`}>Treating Physician</p>
+                              <p className={`text-lg font-bold ${config.textClass}`}>Dr. {fraudCase.treating_physician}</p>
                             </div>
                           )}
                           {fraudCase.primary_diag_code && (
-                            <div className="p-4">
-                              <p className="text-xs text-gray-500 mb-1">Primary Diagnosis</p>
-                              <p className="text-sm font-semibold text-gray-900">{fraudCase.primary_diag_code}</p>
+                            <div className={`${config.cardBg} rounded-xl p-5 border-2 ${config.borderClass} shadow-sm`}>
+                              <p className={`text-xs ${config.textClass} font-bold mb-2 uppercase tracking-wide`}>Primary Diagnosis</p>
+                              <p className={`text-lg font-bold ${config.textClass}`}>{fraudCase.primary_diag_code}</p>
                             </div>
                           )}
                         </div>
                       </div>
 
-                      {/* Fraud Detection Flags */}
+                      {/* Detection Flags */}
                       <div>
-                        <h4 className="text-sm font-bold text-gray-900 mb-3">Detection Flags</h4>
-                        <div className="space-y-2">
+                        <h4 className="text-base font-bold text-gray-900 mb-4 uppercase tracking-wider flex items-center gap-3">
+                          <div className={`w-1.5 h-5 bg-gradient-to-b ${config.bgGradient} rounded-full`}></div>
+                          Detection Flags ({fraudCase.fraud_reasons.length})
+                        </h4>
+                        <div className="grid grid-cols-1 gap-3">
                           {fraudCase.fraud_reasons.map((reason, i) => (
                             <div 
                               key={i}
-                              className={`flex items-center gap-3 p-3 ${config.bgClass} border ${config.borderClass} rounded-lg`}
+                              className={`flex items-start gap-4 p-4 ${config.cardBg} border-2 ${config.borderClass} rounded-xl shadow-sm`}
                             >
-                              <div className={`w-1.5 h-1.5 ${config.textClass.replace('text', 'bg')} rounded-full flex-shrink-0`}></div>
-                              <p className="text-sm font-medium text-gray-900 flex-1">{reason}</p>
+                              <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br ${config.bgGradient} rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-md">
+                                {i + 1}
+                              </div>
+                              <p className={`text-sm font-bold ${config.textClass} flex-1 pt-1`}>{reason}</p>
                             </div>
                           ))}
                         </div>
@@ -481,88 +575,47 @@ const FraudCases: React.FC<FraudCasesProps> = ({ fraudCases }) => {
 
                       {/* Recommended Action */}
                       <div>
-                        <h4 className="text-sm font-bold text-gray-900 mb-3">Recommended Action</h4>
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                          <p className="text-sm text-gray-900 leading-relaxed">{fraudCase.recommended_action}</p>
+                        <h4 className="text-base font-bold text-gray-900 mb-4 uppercase tracking-wider flex items-center gap-3">
+                          <div className={`w-1.5 h-5 bg-gradient-to-b ${config.bgGradient} rounded-full`}></div>
+                          Recommended Action
+                        </h4>
+                        <div className="bg-blue-50 border-2 border-blue-300 rounded-xl p-6 shadow-sm">
+                          <div className="flex items-start gap-4">
+                            <div className="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md">
+                              <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                            </div>
+                            <p className="text-base font-bold text-blue-900 leading-relaxed flex-1 pt-2">{fraudCase.recommended_action}</p>
+                          </div>
                         </div>
                       </div>
+                    </div>
 
-                      {/* Action Buttons */}
-                      <div className="grid grid-cols-2 gap-3 pt-4 border-t border-gray-200">
-                        <button className={`px-4 py-2.5 ${config.textClass.replace('text', 'bg')} hover:opacity-90 text-white font-semibold rounded-lg shadow-sm hover:shadow transition-all duration-200 flex items-center justify-center gap-2`}>
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    {/* Modal Footer - Action Buttons */}
+                    <div className="px-8 py-6 bg-gray-50 border-t-2 border-gray-200">
+                      <div className="grid grid-cols-2 gap-4">
+                        <button className={`px-8 py-4 bg-gradient-to-r ${config.bgGradient} hover:opacity-90 text-white font-bold rounded-xl transition-all duration-200 flex items-center justify-center gap-3 shadow-lg hover:shadow-xl`}>
+                          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                           </svg>
-                          <span className="text-sm">Block</span>
+                          <span>Block Claim</span>
                         </button>
-                        <button className="px-4 py-2.5 bg-white hover:bg-gray-50 text-gray-700 font-semibold rounded-lg border border-gray-300 hover:border-gray-400 transition-all duration-200 flex items-center justify-center gap-2">
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        <button className="px-8 py-4 bg-white hover:bg-gray-100 text-gray-700 font-bold rounded-xl border-2 border-gray-300 hover:border-gray-400 transition-all duration-200 flex items-center justify-center gap-3 shadow-sm">
+                          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                           </svg>
-                          <span className="text-sm">Investigate</span>
+                          <span>Investigate</span>
                         </button>
                       </div>
-
                     </div>
                   </>
                 );
               })()}
-
             </div>
-          ) : (
-            // Empty State for Details Panel
-            <div className="bg-gray-50 rounded-xl border border-gray-200 p-12 text-center">
-              <div className="w-14 h-14 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <svg className="w-7 h-7 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
-                </svg>
-              </div>
-              <h3 className="text-base font-bold text-gray-900 mb-2">Select a Case</h3>
-              <p className="text-sm text-gray-600 max-w-xs mx-auto">
-                Click on any case to view detailed information
-              </p>
-            </div>
-          )}
-        </div>
-
-      </div>
-
-      {/* Bottom Action Guide */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h4 className="text-sm font-bold text-gray-900 mb-4">Action Priority Guidelines</h4>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs mb-4">
-          <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-2.5 h-2.5 bg-red-500 rounded-full"></div>
-              <span className="font-bold text-red-700">Critical (&gt;70%)</span>
-            </div>
-            <p className="text-gray-600 leading-relaxed">Immediate review and potential claim suspension required</p>
-          </div>
-          <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-2.5 h-2.5 bg-orange-500 rounded-full"></div>
-              <span className="font-bold text-orange-700">Warning (50-70%)</span>
-            </div>
-            <p className="text-gray-600 leading-relaxed">Should be audited within 48 hours for verification</p>
-          </div>
-          <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-2.5 h-2.5 bg-yellow-500 rounded-full"></div>
-              <span className="font-bold text-yellow-700">Monitor (&lt;50%)</span>
-            </div>
-            <p className="text-gray-600 leading-relaxed">Routine investigation and pattern monitoring</p>
           </div>
         </div>
-        <div className="pt-4 border-t border-gray-200">
-          <p className="text-xs text-gray-700 leading-relaxed">
-            <span className="font-bold">Detection Priority:</span> Duplicates → Block payment immediately • 
-            Unusual Quantities → Verify medical necessity • 
-            Outliers → Investigate provider billing patterns
-          </p>
-        </div>
-      </div>
-
+      )}
     </div>
   );
 };
